@@ -10,6 +10,12 @@ const dealSchema = new mongoose.Schema({
   isDeleted:  { type: Boolean, default: false },
 }, { timestamps: true });
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+dealSchema.index({ isDeleted: 1, createdAt: -1 });   // every list query
+dealSchema.index({ assignedTo: 1, isDeleted: 1 });   // "my deals" filter
+dealSchema.index({ stage: 1, isDeleted: 1 });        // pipeline by stage
+dealSchema.index({ lead: 1 });                       // deals linked to a lead
+
 dealSchema.pre('save', function () {
   if (['won', 'lost'].includes(this.stage) && !this.closedAt) {
     this.closedAt = Date.now();

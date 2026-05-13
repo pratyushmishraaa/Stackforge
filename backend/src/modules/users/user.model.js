@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+userSchema.index({ email: 1 });                  // login lookup (also unique)
+userSchema.index({ status: 1, createdAt: -1 });  // list by status
+userSchema.index({ name: 1 });                   // name search
+
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
   const salt = await bcrypt.genSalt(12);

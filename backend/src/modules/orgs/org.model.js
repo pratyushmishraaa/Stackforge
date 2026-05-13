@@ -9,5 +9,10 @@ const orgSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+orgSchema.index({ name: 1 });                        // unique lookup + search (also unique)
+orgSchema.index({ isDeleted: 1, createdAt: -1 });    // all list queries filter isDeleted
+orgSchema.index({ industry: 1 });                    // filter by industry
+
 const Org = mongoose.model('Org', orgSchema);
 export default Org;

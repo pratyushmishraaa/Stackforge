@@ -11,5 +11,12 @@ const leadSchema = new mongoose.Schema({
   isDeleted:    { type: Boolean, default: false },
 }, { timestamps: true });
 
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+leadSchema.index({ isDeleted: 1, createdAt: -1 });   // every list query
+leadSchema.index({ assignedTo: 1, isDeleted: 1 });   // "my leads" filter
+leadSchema.index({ status: 1, isDeleted: 1 });       // filter by status
+leadSchema.index({ organisation: 1 });               // leads by org
+leadSchema.index({ email: 1 });                      // lookup by email
+
 const Lead = mongoose.model('Lead', leadSchema);
 export default Lead;
