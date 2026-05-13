@@ -6,7 +6,9 @@ import asyncHandler from '../../utils/asyncHandler.js';
 
 // GET /api/v1/tasks
 export const list = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, assignedTo } = req.query;
+  const page  = Math.max(1, +req.query.page  || 1);
+  const limit = Math.min(+req.query.limit || 20, 100);
+  const { assignedTo } = req.query;
   const filter = { isDeleted: false };
   if (assignedTo === 'me') filter.assignedTo = req.user.sub;
 

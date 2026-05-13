@@ -1,5 +1,6 @@
 import { GENERAL_MESSAGES } from '../constants/messages.js';
 import { STATUS } from '../constants/status.js';
+import logger from '../utils/logger.js';
 
 /**
  * Centralised error handler — must be registered last in app.js.
@@ -49,7 +50,7 @@ const errorHandler = (err, req, res, next) => { // eslint-disable-line no-unused
   }
 
   // Unknown / programmer errors — don't leak internals
-  console.error('UNHANDLED ERROR:', err);
+  logger.error(err.message, { stack: err.stack, path: req?.originalUrl });
 
   return res.status(STATUS.INTERNAL_SERVER_ERROR).json({
     success: false,

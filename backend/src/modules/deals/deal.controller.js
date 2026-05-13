@@ -6,7 +6,9 @@ import asyncHandler from '../../utils/asyncHandler.js';
 
 // GET /api/v1/deals
 export const list = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, search } = req.query;
+  const page  = Math.max(1, +req.query.page  || 1);
+  const limit = Math.min(+req.query.limit || 20, 100);
+  const { search } = req.query;
   const filter = { isDeleted: false };
   if (search) filter.title = { $regex: search, $options: 'i' };
 
@@ -17,6 +19,8 @@ export const list = asyncHandler(async (req, res) => {
   ]);
   return paginate(res, deals, total, page, limit);
 });
+
+
 
 // POST /api/v1/deals
 export const create = asyncHandler(async (req, res) => {
