@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, Mail } from 'lucide-react';
 import api from '../lib/api';
 import Card from '../components/ui/Card';
 import Table from '../components/ui/Table';
@@ -11,42 +11,20 @@ import Select from '../components/ui/Select';
 import SearchBar from '../components/ui/SearchBar';
 import Pagination from '../components/ui/Pagination';
 import PageHeader from '../components/layout/PageHeader';
-
-const columns = [
-  { key: 'name',   label: 'Name', render: r => (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0">
-        {r.name?.[0]?.toUpperCase()}
-      </div>
-      <div>
-        <div className="font-medium text-zinc-200">{r.name}</div>
-        <div className="text-xs text-zinc-600">{r.email || '—'}</div>
-      </div>
-    </div>
-  )},
-  { key: 'status', label: 'Status', render: r => <Badge label={r.status} /> },
-  { key: 'source', label: 'Source', render: r => <Badge label={r.source} /> },
-  { key: 'organisation', label: 'Organisation', render: r => r.organisation?.name
-    ? <span className="text-zinc-300">{r.organisation.name}</span>
-    : <span className="text-zinc-600">—</span>
-  },
-  { key: 'phone', label: 'Phone', render: r => <span className="text-zinc-400">{r.phone || '—'}</span> },
-  { key: 'createdAt', label: 'Created', render: r => (
-    <span className="text-zinc-500 text-xs">{new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-  )},
-];
+import EmailModal from '../components/ui/EmailModal';
 
 const EMPTY_FORM = { name: '', email: '', phone: '', status: 'new', source: 'manual' };
 
 export default function Leads() {
-  const [leads, setLeads]   = useState([]);
-  const [total, setTotal]   = useState(0);
-  const [page, setPage]     = useState(1);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const [leads, setLeads]         = useState([]);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
+  const [search, setSearch]       = useState('');
+  const [status, setStatus]       = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm]     = useState(EMPTY_FORM);
-  const [loading, setLoading] = useState(false);
+  const [emailTarget, setEmailTarget] = useState(null);
+  const [form, setForm]           = useState(EMPTY_FORM);
+  const [loading, setLoading]     = useState(false);
 
   const fetchLeads = async () => {
     const params = { page, limit: 20, ...(search && { search }), ...(status && { status }) };
@@ -68,6 +46,35 @@ export default function Leads() {
     } finally { setLoading(false); }
   };
 
+  const columns = [
+    { key: 'name', label: 'Name', render: r => (
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center text-xs font-bold text-indigo-400 flex-shrink-0">
+          {r.name?.[0]?.toUpperCase()}
+        </div>
+        <div>
+          <div className="font-medium text-zinc-200">{r.name}</div>
+          <div className="text-xs text-zinc-600">{r.email || '—'}</div>
+        </div>
+      </div>
+    )},
+    { key: 'status', label: 'Status', render: r => <Badge label={r.status} /> },
+    { key: 'source', label: 'Source', render: r => <Badge label={r.source} /> },
+    { key: 'organisation', label: 'Organisation', render: r => r.organisation?.name
+      ? <span className="text-zinc-300">{r.organisation.name}</span>
+      : <span className="text-zinc-600">—</span>
+    },
+    { key: 'createdAt', label: 'Created', render: r => (
+      <span className="text-zinc-500 text-xs">{new Date(r.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+    )},
+    { key: 'actions', label: '', render: r => r.email ? (
+      <button onClick={e => { e.stopPropagation(); setEmailTarget(r); }}
+        className="p-1.5 rounded-lg hover:bg-indigo-500/15 text-zinc-600 hover:text-indigo-400 transition-colors" title="Send email">
+        <Mail size={13} />
+      </button>
+    ) : null },
+  ];
+
   return (
     <div>
       <PageHeader
@@ -76,7 +83,6 @@ export default function Leads() {
         action={<Button onClick={() => setShowModal(true)}><Plus size={14} />New Lead</Button>}
       />
 
-      {/* Filters */}
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 max-w-xs">
           <SearchBar value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search leads..." />
@@ -118,6 +124,14 @@ export default function Leads() {
             </div>
           </form>
         </Modal>
+      )}
+
+      {emailTarget && (
+        <EmailModal
+          onClose={() => setEmailTarget(null)}
+          defaultTo={emailTarget.email}
+          defaultSubject={`Following up — ${emailTarget.name}`}
+        />
       )}
     </div>
   );

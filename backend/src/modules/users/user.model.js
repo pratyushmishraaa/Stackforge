@@ -39,6 +39,20 @@ const userSchema = new mongoose.Schema(
     lastLoginAt: {
       type: Date,
     },
+    avatar: {
+      type:   String, // base64 data URL or external URL
+      default: null,
+    },
+    phone: {
+      type:  String,
+      trim:  true,
+      default: null,
+    },
+    bio: {
+      type:    String,
+      maxlength: 300,
+      default: null,
+    },
   },
   { timestamps: true }
 );

@@ -1,17 +1,23 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Building2, TrendingUp,
-  CheckSquare, BarChart2, LogOut, Zap, ChevronRight
+  CheckSquare, BarChart2, LogOut, Zap, ChevronRight,
+  UserCircle, Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const links = [
-  { to: '/',       icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/leads',  icon: TrendingUp,      label: 'Leads'     },
-  { to: '/deals',  icon: BarChart2,       label: 'Deals'     },
-  { to: '/tasks',  icon: CheckSquare,     label: 'Tasks'     },
-  { to: '/orgs',   icon: Building2,       label: 'Orgs'      },
-  { to: '/users',  icon: Users,           label: 'Users'     },
+  { to: '/',        icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/leads',   icon: TrendingUp,      label: 'Leads'     },
+  { to: '/deals',   icon: BarChart2,       label: 'Deals'     },
+  { to: '/tasks',   icon: CheckSquare,     label: 'Tasks'     },
+  { to: '/orgs',    icon: Building2,       label: 'Orgs'      },
+  { to: '/users',   icon: Users,           label: 'Users'     },
+];
+
+const bottomLinks = [
+  { to: '/profile',  icon: UserCircle, label: 'My Profile' },
+  { to: '/settings', icon: Settings,   label: 'Settings'   },
 ];
 
 export default function Sidebar() {
@@ -60,6 +66,29 @@ export default function Sidebar() {
             )}
           </NavLink>
         ))}
+
+        <div className="pt-3 mt-3 border-t border-white/8">
+          <p className="text-[10px] font-semibold text-white/20 uppercase tracking-widest px-3 pb-2">Account</p>
+          {bottomLinks.map(({ to, icon: Icon, label }) => (
+            <NavLink key={to} to={to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 group
+                ${isActive
+                  ? 'bg-indigo-500/15 text-white shadow-sm'
+                  : 'text-white/40 hover:text-white/80 hover:bg-white/5'
+                }`
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon size={15} className={isActive ? 'text-indigo-400' : 'text-white/30 group-hover:text-white/60'} />
+                  <span className="flex-1">{label}</span>
+                  {isActive && <ChevronRight size={12} className="text-indigo-400/60" />}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
       </nav>
 
       {/* User section */}

@@ -11,6 +11,10 @@ import logActivity from '../../middlewares/logActivity.middleware.js';
 const router = Router();
 router.use(authenticate);
 
+// Self-service profile routes (must come before /:id)
+router.patch('/me/profile',  ctrl.updateMe);
+router.patch('/me/password', ctrl.changePassword);
+
 router.get('/',                 authorize(ADMIN, MANAGER),                          ctrl.list);
 router.get('/:id',              validateId,                                         ctrl.getOne);
 router.patch('/:id',            validateId, validate(updateUserSchema), logActivity, ctrl.update);

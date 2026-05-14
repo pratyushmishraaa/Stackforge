@@ -45,3 +45,30 @@ export const deactivate = asyncHandler(async (req, res) => {
   if (!user) throw new AppError('User not found.', STATUS.NOT_FOUND, 'NOT_FOUND');
   return success(res, { user: user.toSafeObject() }, STATUS.OK, 'User deactivated.');
 });
+
+// PATCH /api/v1/users/me/profile  — update own profile (name, phone, bio, avatar)
+export const updateMe = asyncHandler(async (req, res) => {
+  const allowed = ['name', 'phone', 'bio', 'avatar'];
+  const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
+  const user = await User.findByIdAndUpdate(req.user.sub, updates, { new: true, runValidators: true });
+  if (!user) throw new AppError('User not found.', STATUS.NOT_FOUND, 'NOT_FOUND');
+  return success(res, { user: user.toSafeObject() }, STATUS.OK, 'Profile updated.');
+});
+
+// PATCH /api/v1/users/me/password  — change own password
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    throw new AppError('Current and new password are required.', STATUS.BAD_REQUEST, 'VALIDATION_ERROR');
+  }
+  if (newPassword.length < 8) {
+    throw new AppError('New password must be at least 8 characters.', STATUS.BAD_REQUEST, 'VALIDATION_ERROR');
+  }
+  const user = await User.findById(req.user.sub).select('+password');
+  if (!user) throw new AppError('User not found.', STATUS.NOT_FOUND, 'NOT_FOUND');
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) throw new AppError('Current password is incorrect.', STATUS.UNAUTHORIZED, 'INVALID_CREDENTIALS');
+  user.password = newPassword;
+  await user.save();
+  return success(res, null, STATUS.OK, 'Password changed successfully.');
+});
