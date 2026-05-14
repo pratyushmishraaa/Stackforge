@@ -5,16 +5,21 @@ import { STATUS, ACCOUNT_STATUS } from '../../constants/status.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 
 // GET /api/v1/users
+// Filters: search, role, status, sort, order
 export const list = asyncHandler(async (req, res) => {
   const page  = Math.max(1, +req.query.page  || 1);
   const limit = Math.min(+req.query.limit || 20, 100);
-  const { search } = req.query;
-  const filter = {};
-  if (search) filter.name = { $regex: search, $options: 'i' };
+  const { search, role, status, sort = 'createdAt', order = 'desc' } = req.query;
 
-  const skip = (page - 1) * limit;
+  const filter = {};
+  if (search) filter.name   = { $regex: search, $options: 'i' };
+  if (role)   filter.role   = role;
+  if (status) filter.status = status;
+
+  const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
+  const skip    = (page - 1) * limit;
   const [users, total] = await Promise.all([
-    User.find(filter).skip(skip).limit(+limit).sort({ createdAt: -1 }),
+    User.find(filter).sort(sortObj).skip(skip).limit(limit),
     User.countDocuments(filter),
   ]);
   return paginate(res, users, total, page, limit);

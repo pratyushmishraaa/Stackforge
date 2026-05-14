@@ -5,16 +5,29 @@ import { STATUS } from '../../constants/status.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 
 // GET /api/v1/leads
+// Filters: search, status, source, assignedTo, organisation, dateFrom, dateTo, sort, order
 export const list = asyncHandler(async (req, res) => {
   const page  = Math.max(1, +req.query.page  || 1);
   const limit = Math.min(+req.query.limit || 20, 100);
-  const { search } = req.query;
-  const filter = { isDeleted: false };
-  if (search) filter.name = { $regex: search, $options: 'i' };
+  const { search, status, source, assignedTo, organisation, dateFrom, dateTo, sort = 'createdAt', order = 'desc' } = req.query;
 
-  const skip = (page - 1) * limit;
+  const filter = { isDeleted: false };
+  if (search)       filter.name         = { $regex: search, $options: 'i' };
+  if (status)       filter.status       = status;
+  if (source)       filter.source       = source;
+  if (organisation) filter.organisation = organisation;
+  if (assignedTo === 'me') filter.assignedTo = req.user.sub;
+  else if (assignedTo)     filter.assignedTo = assignedTo;
+  if (dateFrom || dateTo) {
+    filter.createdAt = {};
+    if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+    if (dateTo)   filter.createdAt.$lte = new Date(dateTo);
+  }
+
+  const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
+  const skip    = (page - 1) * limit;
   const [leads, total] = await Promise.all([
-    Lead.find(filter).populate('organisation', 'name industry').skip(skip).limit(+limit).sort({ createdAt: -1 }),
+    Lead.find(filter).populate('organisation', 'name industry').sort(sortObj).skip(skip).limit(limit),
     Lead.countDocuments(filter),
   ]);
   return paginate(res, leads, total, page, limit);

@@ -5,16 +5,20 @@ import { STATUS } from '../../constants/status.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 
 // GET /api/v1/orgs
+// Filters: search, industry, sort, order
 export const list = asyncHandler(async (req, res) => {
   const page  = Math.max(1, +req.query.page  || 1);
   const limit = Math.min(+req.query.limit || 20, 100);
-  const { search } = req.query;
-  const filter = { isDeleted: false };
-  if (search) filter.name = { $regex: search, $options: 'i' };
+  const { search, industry, sort = 'createdAt', order = 'desc' } = req.query;
 
-  const skip  = (page - 1) * limit;
+  const filter = { isDeleted: false };
+  if (search)   filter.name     = { $regex: search, $options: 'i' };
+  if (industry) filter.industry = { $regex: industry, $options: 'i' };
+
+  const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
+  const skip    = (page - 1) * limit;
   const [orgs, total] = await Promise.all([
-    Org.find(filter).skip(skip).limit(+limit).sort({ createdAt: -1 }),
+    Org.find(filter).sort(sortObj).skip(skip).limit(limit),
     Org.countDocuments(filter),
   ]);
   return paginate(res, orgs, total, page, limit);

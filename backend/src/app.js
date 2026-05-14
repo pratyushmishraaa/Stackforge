@@ -21,7 +21,19 @@ const app = express();
 
 // Security & parsing
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    const allowed = [
+      process.env.CLIENT_URL || 'http://localhost:5173',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175',
+    ];
+    if (!origin || allowed.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

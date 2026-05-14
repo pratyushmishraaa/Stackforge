@@ -5,16 +5,28 @@ import { STATUS } from '../../constants/status.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 
 // GET /api/v1/tasks
+// Filters: search, status, priority, assignedTo, dueBefore, dueAfter, sort, order
 export const list = asyncHandler(async (req, res) => {
   const page  = Math.max(1, +req.query.page  || 1);
   const limit = Math.min(+req.query.limit || 20, 100);
-  const { assignedTo } = req.query;
-  const filter = { isDeleted: false };
-  if (assignedTo === 'me') filter.assignedTo = req.user.sub;
+  const { search, status, priority, assignedTo, dueBefore, dueAfter, sort = 'dueDate', order = 'asc' } = req.query;
 
-  const skip = (page - 1) * limit;
+  const filter = { isDeleted: false };
+  if (search)   filter.title    = { $regex: search, $options: 'i' };
+  if (status)   filter.status   = status;
+  if (priority) filter.priority = priority;
+  if (assignedTo === 'me') filter.assignedTo = req.user.sub;
+  else if (assignedTo)     filter.assignedTo = assignedTo;
+  if (dueBefore || dueAfter) {
+    filter.dueDate = {};
+    if (dueAfter)  filter.dueDate.$gte = new Date(dueAfter);
+    if (dueBefore) filter.dueDate.$lte = new Date(dueBefore);
+  }
+
+  const sortObj = { [sort]: order === 'asc' ? 1 : -1 };
+  const skip    = (page - 1) * limit;
   const [tasks, total] = await Promise.all([
-    Task.find(filter).populate('assignedTo', 'name email').skip(skip).limit(+limit).sort({ createdAt: -1 }),
+    Task.find(filter).populate('assignedTo', 'name email').sort(sortObj).skip(skip).limit(limit),
     Task.countDocuments(filter),
   ]);
   return paginate(res, tasks, total, page, limit);
