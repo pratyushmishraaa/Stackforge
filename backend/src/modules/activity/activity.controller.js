@@ -8,8 +8,6 @@ export const list = asyncHandler(async (req, res) => {
   const page  = Math.max(1, +req.query.page  || 1);
   const limit = Math.min(+req.query.limit || 20, 100);
   const skip  = (page - 1) * limit;
-
-  const filter = {};
   if (req.query.resource)   filter.resource   = req.query.resource;
   if (req.query.resourceId) filter.resourceId = req.query.resourceId;
   if (req.query.userId)     filter.user        = req.query.userId;

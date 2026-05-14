@@ -10,7 +10,7 @@ const orgSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
-orgSchema.index({ name: 1 });                        // unique lookup + search (also unique)
+// name index is created automatically by unique:true on the field
 orgSchema.index({ isDeleted: 1, createdAt: -1 });    // all list queries filter isDeleted
 orgSchema.index({ industry: 1 });                    // filter by industry
 

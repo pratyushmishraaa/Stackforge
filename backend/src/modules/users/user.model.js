@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // ─── Indexes ──────────────────────────────────────────────────────────────────
-userSchema.index({ email: 1 });                  // login lookup (also unique)
+// email index is created automatically by unique:true on the field
 userSchema.index({ status: 1, createdAt: -1 });  // list by status
 userSchema.index({ name: 1 });                   // name search
 
